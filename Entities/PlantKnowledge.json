@@ -1,0 +1,136 @@
+{
+  "name": "PlantKnowledge",
+  "type": "object",
+  "properties": {
+    "common_name": {
+      "type": "string",
+      "description": "Common name of the plant"
+    },
+    "scientific_name": {
+      "type": "string",
+      "description": "Latin/scientific name"
+    },
+    "alternative_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Other common names"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the plant"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Reference image URL"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "herb",
+        "spice",
+        "vegetable",
+        "fruit",
+        "medicinal_plant",
+        "flower",
+        "other"
+      ],
+      "description": "Plant category"
+    },
+    "edible_uses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "use": {
+            "type": "string"
+          },
+          "preparation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "medicinal_properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": {
+            "type": "string"
+          },
+          "remedy": {
+            "type": "string"
+          },
+          "dosage": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "recipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "ingredients": {
+            "type": "string"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "prep_time": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "safety_warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "caution",
+              "danger"
+            ]
+          },
+          "warning": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "toxic_lookalikes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutritional_info": {
+      "type": "string"
+    },
+    "growing_info": {
+      "type": "string"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin verified entry"
+    }
+  },
+  "required": [
+    "common_name",
+    "scientific_name"
+  ]
+}
