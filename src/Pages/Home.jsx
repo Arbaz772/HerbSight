@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, Sparkles, BookOpen, Leaf, Shield, Zap, Star, TrendingUp, Award, Users } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import CameraCapture from "../components/camera/CameraCapture";
+import CameraCapture from "@/components/camera/CameraCapture";
 import { base44 } from "@/api/base44Client";
 
 export default function Home() {
