@@ -1,8 +1,12 @@
-// src/utils.jsx
+export function createPageUrl(page) {
+  if (!page) return '/';
+  
+  // Clean the page string, e.g., lowercase and replace spaces
+  const slug = page.trim().toLowerCase().replace(/\s+/g, '-');
+  
+  return `/${slug}`;
+}
 
-// Example utility functions
-
-// Capitalizes the first letter of a string
 export function capitalizeFirstLetter(str) {
   if (typeof str !== 'string') return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
