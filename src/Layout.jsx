@@ -2,16 +2,12 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Camera, BookOpen, History, ShieldAlert, Settings, Sparkles } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
 
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
-  }, []);
-
+ 
   const navItems = [
     { name: "Scan", path: createPageUrl("Home"), icon: Camera },
     { name: "My Scans", path: createPageUrl("SavedScans"), icon: History },
