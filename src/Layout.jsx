@@ -1,13 +1,47 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";  // Import Outlet here
 import { createPageUrl } from "@/utils";
 import { Camera, BookOpen, History, ShieldAlert, Settings, Sparkles } from "lucide-react";
 
-export default function Layout({ children, currentPageName }) {
+export default function Layout() {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
 
- 
+  const navItems = [
+    { name: "Scan", path: createPageUrl("Home"), icon: Camera },
+    { name: "My Scans", path: createPageUrl("SavedScans"), icon: History },
+  ];
+
+  if (user?.role === "admin") {
+    navItems.push(
+      { name: "Database", path: createPageUrl("PlantDatabase"), icon: BookOpen },
+      { name: "Admin", path: createPageUrl("AdminKnowledge"), icon: Settings }
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* All your existing style and layout code here */}
+
+      {/* Main Content */}
+      <main className="flex-1">
+        <Outlet /> {/* THIS RENDERS THE ROUTE'S PAGE COMPONENT */}
+      </main>
+
+      {/* Your footer and other layout elements */\
+      
+    </div>
+  );
+}
+import React from "react";
+import { Link, useLocation, Outlet } from "react-router-dom";  // Add Outlet import
+import { createPageUrl } from "@/utils";
+import { Camera, BookOpen, History, ShieldAlert, Settings, Sparkles } from "lucide-react";
+
+export default function Layout() {
+  const location = useLocation();
+  const [user, setUser] = React.useState(null);
+
   const navItems = [
     { name: "Scan", path: createPageUrl("Home"), icon: Camera },
     { name: "My Scans", path: createPageUrl("SavedScans"), icon: History },
@@ -203,7 +237,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1">
-          {children}
+          <Outlet /> {/* Render nested routes here */}
         </main>
 
         {/* Mobile Bottom Navigation */}
