@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
-import Home from "./pages/Home";  // create placeholder page components
-import SavedScans from "./pages/SavedScans";
+import Home from "./Pages/Home";  // create placeholder page components
+import SavedScans from "./Pages/SavedScans";
 
 export default function App() {
   return (
