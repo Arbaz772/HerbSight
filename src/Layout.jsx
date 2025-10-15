@@ -28,7 +28,7 @@ export default function Layout() {
         <Outlet /> {/* THIS RENDERS THE ROUTE'S PAGE COMPONENT */}
       </main>
 
-      {/* Your footer and other layout elements */\
+  
       
     </div>
   );
