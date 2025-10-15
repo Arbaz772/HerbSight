@@ -129,38 +129,40 @@ If confidence is below 70%, emphasize the need for expert verification in the wa
         });
       }
 
-      // Try to save to database, but continue even if it fails (user not logged in)
+      // Create scan object with guaranteed unique ID
+      const scanId = `scan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const tempScan = {
+        id: scanId,
+        image_url: file_url,
+        identification: sanitizedResult.identification,
+        uses: sanitizedResult.uses,
+        warnings: sanitizedResult.warnings,
+        is_favorite: false,
+        created_date: new Date().toISOString(),
+        notes: ""
+      };
+      
+      // Save to localStorage with error handling and verification
       try {
-        const scan = await base44.entities.Scan.create({
-          image_url: file_url,
-          identification: sanitizedResult.identification,
-          uses: sanitizedResult.uses,
-          warnings: sanitizedResult.warnings,
-          is_favorite: false
-        });
-        
-        // Navigate with scan ID
-        navigate(createPageUrl(`ScanResult?id=${scan.id}`));
-      } catch (error) {
-        // If save fails (user not logged in), store in localStorage and show results
-        const tempScan = {
-          id: `temp-${Date.now()}`,
-          image_url: file_url,
-          identification: sanitizedResult.identification,
-          uses: sanitizedResult.uses,
-          warnings: sanitizedResult.warnings,
-          is_favorite: false,
-          created_date: new Date().toISOString(),
-          notes: ""
-        };
-        
-        // Store in localStorage
         const savedScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
         savedScans.unshift(tempScan);
         localStorage.setItem('herbsight_scans', JSON.stringify(savedScans));
         
-        navigate(createPageUrl(`ScanResult?id=${tempScan.id}`));
+        // Verify save was successful
+        const verifyScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
+        const savedScan = verifyScans.find(s => s.id === scanId);
+        
+        if (savedScan) {
+          // Navigate to result page
+          navigate(createPageUrl(`ScanResult?id=${scanId}`));
+        } else {
+          throw new Error("Failed to verify scan save");
+        }
+      } catch (saveError) {
+        console.error("Error saving scan to local storage:", saveError);
+        alert("Failed to save scan locally. Your scan might be lost. Please try again.");
       }
+      
     } catch (error) {
       console.error("Error processing image:", error);
       alert("Failed to process image. Please try again.");

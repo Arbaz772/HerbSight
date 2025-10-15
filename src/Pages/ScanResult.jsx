@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,10 +15,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import ConfidenceIndicator from "../Components/identification/ConfidenceIndicator.jsx";
-import SafetyWarnings from "../components/identification/SafetyWarnings.jsx";
-import RemedySuggestions from "../components/identification/RemedySuggestions.jsx";
-import RecipeCards from "../components/identification/RecipeCards.jsx";
+import ConfidenceIndicator from "../components/identification/ConfidenceIndicator";
+import SafetyWarnings from "../components/identification/SafetyWarnings";
+import RemedySuggestions from "../components/identification/RemedySuggestions";
+import RecipeCards from "../components/identification/RecipeCards";
 
 export default function ScanResult() {
   const navigate = useNavigate();
@@ -33,43 +34,81 @@ export default function ScanResult() {
   }, []);
 
   const loadScan = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const scanId = urlParams.get("id");
-
-    if (!scanId) {
-      setError("No scan ID provided");
-      setIsLoading(false);
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
 
     try {
-      // Load from localStorage
-      const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
-      const localScan = localScans.find(s => s.id === scanId);
-      
-      if (localScan) {
-        setScan(localScan);
-        setNotes(localScan.notes || "");
-      } else {
-        setError("Scan not found");
+      const urlParams = new URLSearchParams(window.location.search);
+      const scanId = urlParams.get("id");
+
+      if (!scanId) {
+        setError("No scan ID provided");
+        setIsLoading(false);
+        return;
+      }
+
+      // Load from localStorage with detailed error handling
+      try {
+        const localScansStr = localStorage.getItem('herbsight_scans');
+
+        if (!localScansStr) {
+          setError("No scan data found in storage. It might be empty or corrupted.");
+          setIsLoading(false);
+          return;
+        }
+
+        const localScans = JSON.parse(localScansStr);
+
+        if (!Array.isArray(localScans) || localScans.length === 0) {
+          setError("No scans available. Your saved scans list is empty.");
+          setIsLoading(false);
+          return;
+        }
+
+        const localScan = localScans.find(s => s.id === scanId);
+
+        if (localScan) {
+          // Ensure all required fields exist to prevent runtime errors
+          const initializedScan = {
+            ...localScan,
+            identification: localScan.identification || {},
+            uses: localScan.uses || { edible: [], medicinal: [], recipes: [] },
+            warnings: localScan.warnings || [],
+            notes: localScan.notes || "",
+            is_favorite: localScan.is_favorite || false
+          };
+          setScan(initializedScan);
+          setNotes(initializedScan.notes);
+        } else {
+          setError("Scan not found. It may have been deleted or the link is incorrect.");
+        }
+      } catch (parseError) {
+        console.error("Error parsing scans from localStorage:", parseError);
+        setError("Failed to process scan data. Storage might be corrupted.");
       }
     } catch (err) {
       console.error("Error loading scan:", err);
-      setError("Failed to load scan");
+      setError("An unexpected error occurred while trying to load the scan.");
     }
+
     setIsLoading(false);
   };
 
   const handleToggleFavorite = async () => {
     if (!scan) return;
-    
+
     const updatedScan = { ...scan, is_favorite: !scan.is_favorite };
     setScan(updatedScan);
 
     // Update in localStorage
-    const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
-    const updatedScans = localScans.map(s => s.id === scan.id ? updatedScan : s);
-    localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    try {
+      const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
+      const updatedScans = localScans.map(s => s.id === scan.id ? updatedScan : s);
+      localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    } catch (error) {
+      console.error("Error updating favorite status in localStorage:", error);
+      alert("Failed to update favorite status. Please try again.");
+    }
   };
 
   const handleSaveNotes = async () => {
@@ -81,17 +120,24 @@ export default function ScanResult() {
     setIsEditingNotes(false);
 
     // Update in localStorage
-    const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
-    const updatedScans = localScans.map(s => s.id === scan.id ? updatedScan : s);
-    localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    try {
+      const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
+      const updatedScans = localScans.map(s => s.id === scan.id ? updatedScan : s);
+      localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    } catch (error) {
+      console.error("Error saving notes to localStorage:", error);
+      alert("Failed to save notes. Please try again.");
+    }
 
     setIsSaving(false);
   };
 
   const handleShare = async () => {
+    if (!scan) return; // Ensure scan data is available before attempting to share
+
     const shareData = {
-      title: `HerbSight: ${scan?.identification?.common_name || "Plant"}`,
-      text: `Check out this plant I identified: ${scan?.identification?.common_name || "Unknown"} (${scan?.identification?.scientific_name || "Unknown"})`,
+      title: `HerbSight: ${scan.identification?.common_name || "Plant"}`,
+      text: `Check out this plant I identified: ${scan.identification?.common_name || "Unknown"} (${scan.identification?.scientific_name || "Unknown"})`,
       url: window.location.href,
     };
 
@@ -99,9 +145,11 @@ export default function ScanResult() {
       try {
         await navigator.share(shareData);
       } catch (error) {
-        console.log("Share cancelled");
+        console.log("Share cancelled or failed:", error);
+        // Optionally, show a message to the user if sharing explicitly failed
       }
     } else {
+      // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
       alert("Link copied to clipboard!");
     }
@@ -121,14 +169,17 @@ export default function ScanResult() {
   if (error || !scan) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <Alert variant="destructive" className="max-w-md">
+        <div className="text-center space-y-4 max-w-md">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error || "Scan not found"}</AlertDescription>
           </Alert>
-          <Button onClick={() => navigate(createPageUrl("Home"))}>
+          <p className="text-sm text-gray-600">
+            The scan may have been deleted or the link is incorrect. Try scanning a new plant.
+          </p>
+          <Button onClick={() => navigate(createPageUrl("Home"))} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Home
+            Go Home & Scan New Plant
           </Button>
         </div>
       </div>

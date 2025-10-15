@@ -27,9 +27,30 @@ export default function SavedScans() {
 
   const loadScans = async () => {
     setIsLoading(true);
-    // Load from localStorage only
-    const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
-    setScans(localScans);
+    
+    try {
+      // Load from localStorage with error handling
+      const localScansStr = localStorage.getItem('herbsight_scans');
+      
+      if (localScansStr) {
+        const localScans = JSON.parse(localScansStr);
+        if (Array.isArray(localScans)) {
+          // Sort by date, newest first
+          const sortedScans = localScans.sort((a, b) => 
+            new Date(b.created_date) - new Date(a.created_date)
+          );
+          setScans(sortedScans);
+        } else {
+          setScans([]); // If it's not an array, initialize as empty
+        }
+      } else {
+        setScans([]); // If no data in localStorage, initialize as empty
+      }
+    } catch (error) {
+      console.error("Error loading scans:", error);
+      setScans([]); // On error, initialize as empty to prevent crashes
+    }
+    
     setIsLoading(false);
   };
 
@@ -56,13 +77,17 @@ export default function SavedScans() {
     event.stopPropagation();
     if (!confirm("Delete this scan? This action cannot be undone.")) return;
 
-    // Delete from state
-    setScans(scans.filter((s) => s.id !== scanId));
-    
-    // Delete from localStorage
-    const localScans = JSON.parse(localStorage.getItem('herbsight_scans') || '[]');
-    const updatedScans = localScans.filter((s) => s.id !== scanId);
-    localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    try {
+      // Delete from state
+      const updatedScans = scans.filter((s) => s.id !== scanId);
+      setScans(updatedScans);
+      
+      // Delete from localStorage
+      localStorage.setItem('herbsight_scans', JSON.stringify(updatedScans));
+    } catch (error) {
+      console.error("Error deleting scan:", error);
+      alert("Failed to delete scan");
+    }
   };
 
   if (isLoading) {
